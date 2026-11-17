@@ -1,0 +1,13 @@
+{
+  "name": "2-simple-express",
+  "version": "1.0.0",
+  "description": "Simple Express - GET and POST products API",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^5.3.0"
+  }
+}
