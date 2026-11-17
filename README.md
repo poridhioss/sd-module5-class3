@@ -19,6 +19,85 @@ GET  /api/products        -> list products
 POST /api/products        -> create a product
 ```
 
+## Folder structure
+
+```
+.
+├── .gitignore
+├── README.md
+├── PUKU.md                       # AI guideline file for puku
+│
+├── 1-raw-node/                  # raw Node.js http module
+│   ├── package.json
+│   └── server.js                 # routing + body parsing, hand-rolled
+│
+├── 2-simple-express/            # single-file Express app
+│   ├── package.json
+│   ├── package-lock.json
+│   └── server.js                 # routes + data + validation in one file
+│
+├── 3-express-mvc/               # MVC split
+│   ├── package.json
+│   ├── package-lock.json
+│   ├── server.js                 # app wiring only
+│   ├── routes/
+│   │   └── productRoutes.js      # router -> controller methods
+│   ├── controllers/
+│   │   └── productController.js  # req/res handling
+│   └── models/
+│       └── productModel.js       # in-memory store, getAll/create
+│
+├── 4-express-modular/           # feature-module split
+│   ├── package.json
+│   ├── package-lock.json
+│   ├── server.js                 # app wiring only
+│   └── modules/
+│       └── product/              # one self-contained folder per feature
+│           ├── product.route.js        # router
+│           ├── product.controller.js   # req/res handling
+│           ├── product.service.js      # orchestration + validation call
+│           ├── product.repository.js   # data access (in-memory)
+│           └── product.validation.js   # input rules
+│
+├── .puku-cli/                   # project-scoped puku config
+│   ├── agents/                   # subagents
+│   │   ├── code-reviewer.md
+│   │   ├── pr-reviewer.md
+│   │   └── system-design-reviewer.md
+│   └── skills/                   # model-invoked guidance
+│       ├── node-backend/SKILL.md
+│       ├── security-review/SKILL.md
+│       └── typescript-best-practices/SKILL.md
+│
+├── hook/                         # shell hooks for harness events
+└── mcp/                          # MCP server scratch space
+```
+
+`node_modules/` is present in projects 2–4 after `npm install` but is
+git-ignored, so it does not appear in the tree.
+
+### Request flow — how the structure evolves
+
+The same `POST /api/products` request travels through a different number of
+layers in each project:
+
+```
+1-raw-node        req ──► routing + body parse + validate + store   (one file)
+
+2-simple-express  req ──► route handler ──► validate + store         (one file)
+
+3-express-mvc     req ──► route ──► controller ──► model              (3 layers)
+
+4-express-modular req ──► route ──► controller ──► service ──►        (5 layers)
+                                       │                repository
+                                       └─► validation
+```
+
+Project 4 splits further than MVC: the **repository** owns data access, the
+**service** orchestrates and calls **validation**, and the **controller** only
+translates between HTTP and the service. A new feature becomes a new folder
+under `modules/` with no edits to existing files.
+
 ## Getting started
 
 Each project is standalone. Pick one and run it:
